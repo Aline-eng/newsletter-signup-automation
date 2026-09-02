@@ -3,38 +3,49 @@ package tests;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import pages.SignupPage;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class SignupTest {
-    private static final String URL = "https://aline-eng.github.io/NewsLetter-Signup/";
     private WebDriver driver;
+    private SignupPage signupPage;
+
     @BeforeEach
     void setUp() {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
-        driver.get(URL);
+        signupPage = new SignupPage(driver);
+        signupPage.open();
     }
     @Test
     void successfulSignupShowsConfirmationMessage() {
         String testEmail = "test.automation@example.com";
-        WebElement emailInput = driver.findElement(By.id("email"));
-        emailInput.sendKeys(testEmail);
 
-        WebElement subscribeButton = driver.findElement(By.cssSelector("#signup-form button[type='submit']"));
-        subscribeButton.click();
+        signupPage.subscribe(testEmail);
 
-        WebElement successHeading = driver.findElement(By.id("success-heading"));
-        assertTrue(successHeading.isDisplayed(), "Success message should be visible after subscribing");
-        assertEquals("Thanks for subscribing!", successHeading.getText());
+        assertTrue(signupPage.isSuccessMessageDisplayed(), "Success message should be visible after subscribing");
+        assertEquals("Thanks for subscribing!", signupPage.getSuccessHeadingText());
+        assertEquals(testEmail, signupPage.getSuccessEmailText());
+    }
 
-        WebElement successEmail = driver.findElement(By.id("success-email"));
-        assertEquals(testEmail, successEmail.getText());
+    @ParameterizedTest(name = "email \"{0}\" is rejected with \"{1}\"")
+    @CsvSource({
+            "'', Whoops! It looks like this is empty",
+            "not-an-email, Valid email required"
+    })
+    void invalidEmailShowsValidationError(String email, String expectedError) {
+        signupPage.enterEmail(email);
+        signupPage.clickSubscribe();
+
+        assertEquals(expectedError, signupPage.getEmailErrorText());
+        assertFalse(signupPage.isSuccessMessageDisplayed(), "Success message should not appear for invalid input");
     }
     @AfterEach
     void tearDown() {
