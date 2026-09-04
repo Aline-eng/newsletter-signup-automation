@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import pages.SignupPage;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +20,14 @@ public class SignupTest {
 
     @BeforeEach
     void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        if (System.getenv("CI") != null) {
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--window-size=1920,1080");
+        }
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         signupPage = new SignupPage(driver);
         signupPage.open();
