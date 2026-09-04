@@ -33,7 +33,7 @@ public class SignupTest {
     }
     @Test
     void successfulSignupShowsConfirmationMessage() {
-        String testEmail = "test.automation@example.com";
+        String testEmail = "test.automation@test.com";
 
         signupPage.subscribe(testEmail);
 
